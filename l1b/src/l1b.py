@@ -47,7 +47,7 @@ class l1b(initL1b):
             # Write output TOA
             # -------------------------------------------------------------------------------
             writeToa(self.outdir, self.globalConfig.l1b_toa + band, toa)
-            self.plotL1bToa(toa, self.outdir, band)
+            #self.plotL1bToa(toa, self.outdir, band)
 
             self.logger.info("End of BAND " + band)
 
@@ -63,7 +63,8 @@ class l1b(initL1b):
         :return: TOA in DN, equalized
         """
         #TODO
-        return toa_out
+        
+        return toa
 
     def restoration(self,toa,gain):
         """
@@ -77,5 +78,5 @@ class l1b(initL1b):
 
         return toa
 
-    def plotL1bToa(self, toa_l1b, outputdir, band):
-        #TODO
+    #def plotL1bToa(self, toa_l1b, outputdir, band):
+    #    #TODO
