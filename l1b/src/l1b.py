@@ -47,7 +47,7 @@ class l1b(initL1b):
             # Write output TOA
             # -------------------------------------------------------------------------------
             writeToa(self.outdir, self.globalConfig.l1b_toa + band, toa)
-            #self.plotL1bToa(toa, self.outdir, band)
+            self.plotL1bToa(toa, self.outdir, band)
 
             self.logger.info("End of BAND " + band)
 
@@ -81,8 +81,12 @@ class l1b(initL1b):
         return toa
 
     def plotL1bToa(self, toa, outputdir, band):
-        #TODO
-    #plt.plot(toa)
-    plt.title("TOA COMPARISON")
-    plt.show()
+
+        fig = plt.figure(figsize=(20,10))
+        plt.plot(toa[0:])
+        plt.title("TOA COMPARISON")
+        saveas_str='L1B_TOA_' + band
+        savestr= outputdir + '/' + saveas_str
+        plt.savefig(savestr)
+        plt.close(fig)
 

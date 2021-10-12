@@ -1,3 +1,4 @@
+import os.path
 
 from ism.src.initIsm import initIsm
 from math import pi
@@ -93,6 +94,7 @@ class opticalPhase(initIsm):
         :return: TOA image in irradiances [mW/m2]
         """
         # TODO
+        toa=Tr*toa*(pi/4)*(D/f)²
         return toa
 
 
@@ -115,6 +117,9 @@ class opticalPhase(initIsm):
         :return: TOA image 2D in radiances [mW/m2]
         """
         # TODO
+
+        isrf, wv_isrf = readIsrf(os.path.join(self.auxdir,self.ismConfig.isrffile),band)
+
         return toa
 
 
