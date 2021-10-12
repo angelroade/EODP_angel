@@ -80,5 +80,9 @@ class l1b(initL1b):
 
         return toa
 
-    #def plotL1bToa(self, toa_l1b, outputdir, band):
-    #    #TODO
+    def plotL1bToa(self, toa, outputdir, band):
+        #TODO
+    #plt.plot(toa)
+    plt.title("TOA COMPARISON")
+    plt.show()
+
