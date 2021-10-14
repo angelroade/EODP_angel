@@ -35,41 +35,41 @@ class opticalPhase(initIsm):
 
         self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
 
-        if self.ismConfig.save_after_isrf:
-            saveas_str = self.globalConfig.ism_toa_isrf + band
-            writeToa(self.outdir, saveas_str, toa)
-
-        # Radiance to Irradiance conversion
-        # -------------------------------------------------------------------------------
-        self.logger.info("EODP-ALG-ISM-1020: Radiances to Irradiances")
-        toa = self.rad2Irrad(toa,
-                             self.ismConfig.D,
-                             self.ismConfig.f,
-                             self.ismConfig.Tr)
+        # if self.ismConfig.save_after_isrf:
+        #     saveas_str = self.globalConfig.ism_toa_isrf + band
+        #     writeToa(self.outdir, saveas_str, toa)
+        #
+        # # Radiance to Irradiance conversion
+        # # -------------------------------------------------------------------------------
+        # self.logger.info("EODP-ALG-ISM-1020: Radiances to Irradiances")
+        # toa = self.rad2Irrad(toa,
+        #                      self.ismConfig.D,
+        #                      self.ismConfig.f,
+        #                      self.ismConfig.Tr)
 
         self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
 
         # Spatial filter
         # -------------------------------------------------------------------------------
         # Calculation and application of the system MTF
-        self.logger.info("EODP-ALG-ISM-1030: Spatial modelling. PSF/MTF")
-        myMtf = mtf(self.logger, self.outdir)
-        Hsys = myMtf.system_mtf(toa.shape[0], toa.shape[1],
-                                self.ismConfig.D, self.ismConfig.wv[getIndexBand(band)], self.ismConfig.f, self.ismConfig.pix_size,
-                                self.ismConfig.kLF, self.ismConfig.wLF, self.ismConfig.kHF, self.ismConfig.wHF,
-                                self.ismConfig.defocus, self.ismConfig.ksmear, self.ismConfig.kmotion,
-                                self.outdir, band)
-
-        # Apply system MTF
-        toa = self.applySysMtf(toa, Hsys) # always calculated
-        self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
+        # self.logger.info("EODP-ALG-ISM-1030: Spatial modelling. PSF/MTF")
+        # myMtf = mtf(self.logger, self.outdir)
+        # Hsys = myMtf.system_mtf(toa.shape[0], toa.shape[1],
+        #                         self.ismConfig.D, self.ismConfig.wv[getIndexBand(band)], self.ismConfig.f, self.ismConfig.pix_size,
+        #                         self.ismConfig.kLF, self.ismConfig.wLF, self.ismConfig.kHF, self.ismConfig.wHF,
+        #                         self.ismConfig.defocus, self.ismConfig.ksmear, self.ismConfig.kmotion,
+        #                         self.outdir, band)
+        #
+        # # Apply system MTF
+        # toa = self.applySysMtf(toa, Hsys) # always calculated
+        # self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
 
 
 
         # Write output TOA & plots
         # -------------------------------------------------------------------------------
         if self.ismConfig.save_optical_stage:
-            saveas_str = self.globalConfig.ism_toa_optical + band
+            saveas_str = self.globalConfig.ism_toa_isrf + band
 
             writeToa(self.outdir, saveas_str, toa)
 
@@ -94,7 +94,8 @@ class opticalPhase(initIsm):
         :return: TOA image in irradiances [mW/m2]
         """
         # TODO
-        toa=Tr*toa*(pi/4)*(D/f)²
+        #    TOA=Tr*toa*(pi/4)*(D/f)**2
+
         return toa
 
 
@@ -119,6 +120,18 @@ class opticalPhase(initIsm):
         # TODO
 
         isrf, wv_isrf = readIsrf(os.path.join(self.auxdir,self.ismConfig.isrffile),band)
+
+        isrf_lambda=isrf/sum(isrf)
+
+        (i,j)=sgm_toa[:,:,1].shape
+        toa=np.zeros([i,j])
+        for ii in range(i):
+            for jj in range(j):
+
+                cs = interp1d(sgm_wv, sgm_toa[ii,jj,:], fill_value=(0, 0), bounds_error=False)
+                toa_interp = cs(wv_isrf)
+                ans=sum(toa_interp*isrf)
+                toa[ii,jj]=ans
 
         return toa
 
