@@ -35,23 +35,24 @@ class opticalPhase(initIsm):
 
         self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
 
-        # if self.ismConfig.save_after_isrf:
-        #     saveas_str = self.globalConfig.ism_toa_isrf + band
-        #     writeToa(self.outdir, saveas_str, toa)
-        #
-        # # Radiance to Irradiance conversion
-        # # -------------------------------------------------------------------------------
+        if self.ismConfig.save_after_isrf:
+             saveas_str = self.globalConfig.ism_toa_isrf + band
+             writeToa(self.outdir, saveas_str, toa)
+
+        # Radiance to Irradiance conversion
+        # -------------------------------------------------------------------------------
         # self.logger.info("EODP-ALG-ISM-1020: Radiances to Irradiances")
         # toa = self.rad2Irrad(toa,
         #                      self.ismConfig.D,
         #                      self.ismConfig.f,
         #                      self.ismConfig.Tr)
-
-        self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
+        #
+        # self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
 
         # Spatial filter
         # -------------------------------------------------------------------------------
         # Calculation and application of the system MTF
+
         # self.logger.info("EODP-ALG-ISM-1030: Spatial modelling. PSF/MTF")
         # myMtf = mtf(self.logger, self.outdir)
         # Hsys = myMtf.system_mtf(toa.shape[0], toa.shape[1],
@@ -69,18 +70,18 @@ class opticalPhase(initIsm):
         # Write output TOA & plots
         # -------------------------------------------------------------------------------
         if self.ismConfig.save_optical_stage:
-            saveas_str = self.globalConfig.ism_toa_isrf + band
+             saveas_str = self.globalConfig.ism_toa_optical + band
 
-            writeToa(self.outdir, saveas_str, toa)
+             writeToa(self.outdir, saveas_str, toa)
 
-            title_str = 'TOA after the optical phase [mW/sr/m2]'
-            xlabel_str='ACT'
-            ylabel_str='ALT'
-            plotMat2D(toa, title_str, xlabel_str, ylabel_str, self.outdir, saveas_str)
+             title_str = 'TOA after the optical phase [mW/sr/m2]'
+             xlabel_str='ACT'
+             ylabel_str='ALT'
+             plotMat2D(toa, title_str, xlabel_str, ylabel_str, self.outdir, saveas_str)
 
-            idalt = int(toa.shape[0]/2)
-            saveas_str = saveas_str + '_alt' + str(idalt)
-            plotF([], toa[idalt,:], title_str, xlabel_str, ylabel_str, self.outdir, saveas_str)
+             idalt = int(toa.shape[0]/2)
+             saveas_str = saveas_str + '_alt' + str(idalt)
+             plotF([], toa[idalt,:], title_str, xlabel_str, ylabel_str, self.outdir, saveas_str)
 
         return toa
 
@@ -94,7 +95,8 @@ class opticalPhase(initIsm):
         :return: TOA image in irradiances [mW/m2]
         """
         # TODO
-        #    TOA=Tr*toa*(pi/4)*(D/f)**2
+
+        #toa=Tr*toa*(pi/4)*(D/f)**2
 
         return toa
 
@@ -122,7 +124,7 @@ class opticalPhase(initIsm):
         isrf, wv_isrf = readIsrf(os.path.join(self.auxdir,self.ismConfig.isrffile),band)
 
         isrf_lambda=isrf/sum(isrf)
-
+        wv_isrf=wv_isrf*1000
         (i,j)=sgm_toa[:,:,1].shape
         toa=np.zeros([i,j])
         for ii in range(i):
@@ -130,7 +132,7 @@ class opticalPhase(initIsm):
 
                 cs = interp1d(sgm_wv, sgm_toa[ii,jj,:], fill_value=(0, 0), bounds_error=False)
                 toa_interp = cs(wv_isrf)
-                ans=sum(toa_interp*isrf)
+                ans=sum(toa_interp*isrf_lambda)
                 toa[ii,jj]=ans
 
         return toa
