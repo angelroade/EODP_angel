@@ -41,13 +41,13 @@ class opticalPhase(initIsm):
 
         # Radiance to Irradiance conversion
         # -------------------------------------------------------------------------------
-        # self.logger.info("EODP-ALG-ISM-1020: Radiances to Irradiances")
-        # toa = self.rad2Irrad(toa,
-        #                      self.ismConfig.D,
-        #                      self.ismConfig.f,
-        #                      self.ismConfig.Tr)
-        #
-        # self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
+        self.logger.info("EODP-ALG-ISM-1020: Radiances to Irradiances")
+        toa = self.rad2Irrad(toa,
+                              self.ismConfig.D,
+                              self.ismConfig.f,
+                              self.ismConfig.Tr)
+
+        self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
 
         # Spatial filter
         # -------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ class opticalPhase(initIsm):
         """
         # TODO
 
-        #toa=Tr*toa*(pi/4)*(D/f)**2
+        toa=Tr*toa*(pi/4)*(D/f)**2
 
         return toa
 
