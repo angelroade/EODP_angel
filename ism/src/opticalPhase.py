@@ -53,14 +53,14 @@ class opticalPhase(initIsm):
         # -------------------------------------------------------------------------------
         # Calculation and application of the system MTF
 
-        # self.logger.info("EODP-ALG-ISM-1030: Spatial modelling. PSF/MTF")
-        # myMtf = mtf(self.logger, self.outdir)
-        # Hsys = myMtf.system_mtf(toa.shape[0], toa.shape[1],
-        #                         self.ismConfig.D, self.ismConfig.wv[getIndexBand(band)], self.ismConfig.f, self.ismConfig.pix_size,
-        #                         self.ismConfig.kLF, self.ismConfig.wLF, self.ismConfig.kHF, self.ismConfig.wHF,
-        #                         self.ismConfig.defocus, self.ismConfig.ksmear, self.ismConfig.kmotion,
-        #                         self.outdir, band)
-        #
+        self.logger.info("EODP-ALG-ISM-1030: Spatial modelling. PSF/MTF")
+        myMtf = mtf(self.logger, self.outdir)
+        Hsys = myMtf.system_mtf(toa.shape[0], toa.shape[1],
+                                self.ismConfig.D, self.ismConfig.wv[getIndexBand(band)], self.ismConfig.f, self.ismConfig.pix_size,
+                                self.ismConfig.kLF, self.ismConfig.wLF, self.ismConfig.kHF, self.ismConfig.wHF,
+                                self.ismConfig.defocus, self.ismConfig.ksmear, self.ismConfig.kmotion,
+                                self.outdir, band)
+
         # # Apply system MTF
         # toa = self.applySysMtf(toa, Hsys) # always calculated
         # self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")

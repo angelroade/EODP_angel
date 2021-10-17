@@ -49,23 +49,23 @@ class mtf:
         fn2D, fr2D, fnAct, fnAlt = self.freq2d(nlines, ncolumns, D, lambd, focal, pix_size)
 
         # Diffraction MTF
-        self.logger.debug("Calculation of the diffraction MTF")
-        Hdiff = self.mtfDiffract(fr2D)
-
-        # Defocus
-        Hdefoc = self.mtfDefocus(fr2D, defocus, focal, D)
-
-        # WFE Aberrations
-        Hwfe = self.mtfWfeAberrations(fr2D, lambd, kLF, wLF, kHF, wHF)
-
-        # Detector
-        Hdet  = self. mtfDetector(fn2D)
-
-        # Smearing MTF
-        Hsmear = self.mtfSmearing(fnAlt, ncolumns, ksmear)
-
-        # Motion blur MTF
-        Hmotion = self.mtfMotion(fn2D, kmotion)
+        # self.logger.debug("Calculation of the diffraction MTF")
+        # Hdiff = self.mtfDiffract(fr2D)
+        #
+        # # Defocus
+        # Hdefoc = self.mtfDefocus(fr2D, defocus, focal, D)
+        #
+        # # WFE Aberrations
+        # Hwfe = self.mtfWfeAberrations(fr2D, lambd, kLF, wLF, kHF, wHF)
+        #
+        # # Detector
+        # Hdet  = self. mtfDetector(fn2D)
+        #
+        # # Smearing MTF
+        # Hsmear = self.mtfSmearing(fnAlt, ncolumns, ksmear)
+        #
+        # # Motion blur MTF
+        # Hmotion = self.mtfMotion(fn2D, kmotion)
 
         # Calculate the System MTF
         self.logger.debug("Calculation of the Sysmtem MTF by multiplying the different contributors")
@@ -92,6 +92,27 @@ class mtf:
         :return fnAlt: 1D normalised frequencies 2D ALT (f/(1/w))
         """
         #TODO
+        fstepAlt = 1/nlines/w
+        fstepAct = 1/ncolumns/w
+
+        eps=1e-6;
+
+        fAlt = np.arange(-1/(2*w),1/(2*w)-eps,fstepAlt)
+        fAct = np.arange(-1/(2*w),1/(2*w)-eps,fstepAct)
+
+        w=(lambd*focal)/(2*D)
+        fc=D/(lambd*focal)
+
+        fnAlt=fAlt/(1/w)
+        fnAct=fAct/(1/w)
+        frAlt=fAlt/(fc)
+        frAct=fAct/(fc)
+
+        [fnAltxx,fnActxx] = np.meshgrid(fnAlt,fnAct,indexing='ij') # Please use ‘ij’ indexing or you will get the transpose
+        fn2D=np.sqrt(fnAltxx*fnAltxx + fnActxx*fnActxx)
+
+        fr2D = fn2D*(fc/w)
+
         return fn2D, fr2D, fnAct, fnAlt
 
     def mtfDiffract(self,fr2D):
