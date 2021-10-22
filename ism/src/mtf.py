@@ -49,8 +49,8 @@ class mtf:
         fn2D, fr2D, fnAct, fnAlt = self.freq2d(nlines, ncolumns, D, lambd, focal, pix_size)
 
         # Diffraction MTF
-        # self.logger.debug("Calculation of the diffraction MTF")
-        # Hdiff = self.mtfDiffract(fr2D)
+        self.logger.debug("Calculation of the diffraction MTF")
+        Hdiff = self.mtfDiffract(fr2D)
         #
         # # Defocus
         # Hdefoc = self.mtfDefocus(fr2D, defocus, focal, D)
@@ -72,7 +72,7 @@ class mtf:
         Hsys = 0
 
         # Plot cuts ACT/ALT of the MTF
-        self.plotMtf(Hdiff, Hdefoc, Hwfe, Hdet, Hsmear, Hmotion, Hsys, nlines, ncolumns, fnAct, fnAlt, directory, band)
+        # self.plotMtf(Hdiff, Hdefoc, Hwfe, Hdet, Hsmear, Hmotion, Hsys, nlines, ncolumns, fnAct, fnAlt, directory, band)
 
 
         return Hsys
@@ -122,6 +122,18 @@ class mtf:
         :return: diffraction MTF
         """
         #TODO
+
+        acosD=np.vectorize(math.acos)
+        (ii,jj)=fr2D.shape
+        Hdiff=np.zeros([ii,jj])
+
+        for i in range(ii):
+             for j in range(jj):
+                if fr2D[i,j]>1:
+                 Hdiff[i,j]=0
+                else:
+                 Hdiff[i,j]=2/pi*(acosD(fr2D[i,j])-fr2D[i,j]*(1-(fr2D[i,j])**2)**(1/2))
+
         return Hdiff
 
 
