@@ -62,8 +62,8 @@ class opticalPhase(initIsm):
                                 self.outdir, band)
 
         # # Apply system MTF
-        # toa = self.applySysMtf(toa, Hsys) # always calculated
-        # self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
+        #toa = self.applySysMtf(toa, Hsys) # always calculated
+        #self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
 
 
 
@@ -109,6 +109,7 @@ class opticalPhase(initIsm):
         :return: TOA image in irradiances [mW/m2]
         """
         # TODO
+
         return toa_ft
 
     def spectralIntegration(self, sgm_toa, sgm_wv, band):
