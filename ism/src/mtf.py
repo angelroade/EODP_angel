@@ -2,6 +2,7 @@ from math import pi
 from config.ismConfig import ismConfig
 import numpy as np
 import math
+import scipy
 import matplotlib.pyplot as plt
 from scipy.special import j1
 from numpy.matlib import repmat
@@ -53,10 +54,10 @@ class mtf:
         Hdiff = self.mtfDiffract(fr2D)
         #
         # # Defocus
-        # Hdefoc = self.mtfDefocus(fr2D, defocus, focal, D)
+        defoc = self.mtfDefocus(fr2D, defocus, focal, D)
         #
         # # WFE Aberrations
-        # Hwfe = self.mtfWfeAberrations(fr2D, lambd, kLF, wLF, kHF, wHF)
+        Hwfe = self.mtfWfeAberrations(fr2D, lambd, kLF, wLF, kHF, wHF)
         #
         # # Detector
         # Hdet  = self. mtfDetector(fn2D)
@@ -126,13 +127,8 @@ class mtf:
         acosD=np.vectorize(math.acos)
         (ii,jj)=fr2D.shape
         Hdiff=np.zeros([ii,jj])
-
-        for i in range(ii):
-             for j in range(jj):
-                if fr2D[i,j]>1:
-                 Hdiff[i,j]=0
-                else:
-                 Hdiff[i,j]=2/pi*(acosD(fr2D[i,j])-fr2D[i,j]*(1-(fr2D[i,j])**2)**(1/2))
+        Hdiff=2/pi*(acosD(fr2D)-fr2D*(1-fr2D**2)**(1/2))
+        Hdiff[fr2D*fr2D>1]=0
 
         return Hdiff
 
@@ -147,6 +143,9 @@ class mtf:
         :return: Defocus MTF
         """
         #TODO
+
+        x=pi*defocus*fr2D*(1-fr2D)
+        Hdefoc=2*scipy.special.j1(x)/x
         return Hdefoc
 
     def mtfWfeAberrations(self, fr2D, lambd, kLF, wLF, kHF, wHF):
@@ -161,6 +160,9 @@ class mtf:
         :return: WFE Aberrations MTF
         """
         #TODO
+
+        Hwfe = math.exp(-fr2D*(1-fr2D)*(kLF*(wLF/lambd)**2+kHF*(wHF/lambd)**2))
+
         return Hwfe
 
     def mtfDetector(self,fn2D):
