@@ -62,8 +62,8 @@ class opticalPhase(initIsm):
                                 self.outdir, band)
 
         # # Apply system MTF
-        #toa = self.applySysMtf(toa, Hsys) # always calculated
-        #self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
+        toa = self.applySysMtf(toa, Hsys) # always calculated
+        self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
 
 
 
@@ -109,6 +109,11 @@ class opticalPhase(initIsm):
         :return: TOA image in irradiances [mW/m2]
         """
         # TODO
+
+        GE=fft2(toa)
+        out=GE*fftshift(Hsys)
+        toa_ft=ifft2(out)
+        toa_ft=np.real(toa_ft)
 
         return toa_ft
 

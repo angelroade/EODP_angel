@@ -233,6 +233,28 @@ class mtf:
         savestr = directory + saveas_str
         plt.savefig(savestr)
         plt.close(fig)
+
+        fig = plt.figure(figsize=(20,10))
+        plt.plot(-fnAct[0:int(ncolumns/2)],abs(Hdiff[int(nlines/2),0:int(ncolumns/2)]),label='Diffraction MTF')
+        plt.plot(-fnAct[0:int(ncolumns/2)],abs(Hdefoc[int(nlines/2),0:int(ncolumns/2)]),label='Defocus MTF')
+        plt.plot(-fnAct[0:int(ncolumns/2)],abs(Hwfe[int(nlines/2),0:int(ncolumns/2)]),label='WFE aberrations MTF')
+        plt.plot(-fnAct[0:int(ncolumns/2)],abs(Hdet[int(nlines/2),0:int(ncolumns/2)]),label='Detector MTF')
+        plt.plot(-fnAct[0:int(ncolumns/2)],abs(Hsmear[int(nlines/2),0:int(ncolumns/2)]),label='Smearing MTF')
+        plt.plot(-fnAct[0:int(ncolumns/2)],abs(Hmotion[int(nlines/2),0:int(ncolumns/2)]),label='Motion blur MTF')
+        plt.plot(-fnAct[0:int(ncolumns/2)],abs(Hsys[int(nlines/2),0:int(ncolumns/2)]),label='System MTF')
+        auxv = np.arange(0,1.1,0.1)
+        plt.plot(0.5*np.ones(auxv.shape),auxv,'--k',linewidth=3,label='f Nyquist')
+        plt.title('System MTF slice ACT for' + band, fontsize=20)
+        plt.xlabel('Spatial frequencies f/(1/w) [-]', fontsize=16)
+        plt.ylabel('MTF', fontsize=16)
+        plt.grid()
+        plt.legend()
+        saveas_str = 'system_mtf_cutAct_'+band
+        savestr = directory + saveas_str
+        plt.savefig(savestr)
+        plt.close(fig)
+
+
         #TODO
 
 
