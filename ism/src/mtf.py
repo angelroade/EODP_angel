@@ -52,32 +52,29 @@ class mtf:
 
         # Diffraction MTF
         self.logger.debug("Calculation of the diffraction MTF")
-        #Hdiff = self.mtfDiffract(fr2D)
-        Hdiff=np.ones([nlines,ncolumns])
-        #
-        # # Defocus
+        Hdiff = self.mtfDiffract(fr2D)
+
+        # Defocus
         Hdefoc = self.mtfDefocus(fr2D, defocus, focal, D)
         #
-        # # WFE Aberrations
-        #Hwfe = self.mtfWfeAberrations(fr2D, lambd, kLF, wLF, kHF, wHF)
-        Hwfe=np.ones([nlines,ncolumns])
+        # WFE Aberrations
+        Hwfe = self.mtfWfeAberrations(fr2D, lambd, kLF, wLF, kHF, wHF)
         #
-        # # Detector
+        # Detector
         Hdet  = self. mtfDetector(fn2D)
         #
-        # # Smearing MTF
+        # Smearing MTF
         Hsmear = self.mtfSmearing(fnAlt, ncolumns, ksmear)
         #
-        # # Motion blur MTF
+        # Motion blur MTF
         Hmotion = self.mtfMotion(fn2D, kmotion)
 
         # Calculate the System MTF
-        self.logger.debug("Calculation of the Sysmtem MTF by multiplying the different contributors")
+        self.logger.debug("Calculation of the System MTF by multiplying the different contributors")
         Hsys = Hdiff*Hdefoc*Hwfe*Hdet*Hsmear*Hmotion
 
         # Plot cuts ACT/ALT of the MTF
         self.plotMtf(Hdiff, Hdefoc, Hwfe, Hdet, Hsmear, Hmotion, Hsys, nlines, ncolumns, fnAct, fnAlt, directory, band)
-
 
         return Hsys
 
@@ -99,24 +96,21 @@ class mtf:
         fstepAlt = 1/nlines/w
         fstepAct = 1/ncolumns/w
 
-        eps=1e-6;
+        eps=1e-6
 
         fAlt = np.arange(-1/(2*w),1/(2*w)-eps,fstepAlt)
         fAct = np.arange(-1/(2*w),1/(2*w)-eps,fstepAct)
 
-        w=(lambd*focal)/(2*D)
-        fc=D/(lambd*focal)
+        fc=D/(focal*lambd)
 
         fnAlt=fAlt/(1/w)
         fnAct=fAct/(1/w)
-        frAlt=fAlt/(fc)
-        frAct=fAct/(fc)
+        frAlt=fAlt/fc
+        frAct=fAct/fc
 
         [fnAltxx,fnActxx] = np.meshgrid(fnAlt,fnAct,indexing='ij')
         fn2D=np.sqrt(fnAltxx*fnAltxx + fnActxx*fnActxx)
-
-        [frAltxx,frActxx] = np.meshgrid(frAlt,frAct,indexing='ij')
-        fr2D=np.sqrt(frAltxx*frAltxx + frActxx*frActxx)
+        fr2D=fn2D*((1/w)/fc)
 
         return fn2D, fr2D, fnAct, fnAlt
 
@@ -128,10 +122,7 @@ class mtf:
         """
         #TODO
 
-        coseno=np.vectorize(math.acos)
-        cos=coseno(fr2D)
-        Hdiff=2/pi*(coseno(fr2D)-fr2D*(1-fr2D**2)**(1/2))
-        Hdiff[fr2D*fr2D>1]=0
+        Hdiff=(2/pi)*(np.arccos(fr2D)-fr2D*(1-fr2D**2)**(1/2))
 
         return Hdiff
 
@@ -163,8 +154,7 @@ class mtf:
         :return: WFE Aberrations MTF
         """
         #TODO
-        expo=np.vectorize(math.exp)
-        Hwfe = expo(-fr2D*(1-fr2D)*(kLF*(wLF/lambd)**2+kHF*(wHF/lambd)**2))
+        Hwfe = np.exp(-fr2D*(1-fr2D)*(kLF*(wLF/lambd)**2+kHF*(wHF/lambd)**2))
 
         return Hwfe
 
@@ -175,8 +165,8 @@ class mtf:
         :return: detector MTF
         """
         #TODO
-        seno=np.vectorize(math.sin)
-        Hdet=abs(seno(pi*fn2D)/pi*fn2D)
+
+        Hdet=abs(np.sin(pi*fn2D)/(pi*fn2D))
         return Hdet
 
     def mtfSmearing(self, fnAlt, ncolumns, ksmear):
@@ -188,8 +178,8 @@ class mtf:
         :return: Smearing MTF
         """
         #TODO
-        seno=np.vectorize(math.sin)
-        Hsmear=seno(ksmear*fnAlt)/ksmear*fnAlt
+
+        Hsmear=np.sin(ksmear*fnAlt)/(ksmear*fnAlt)
         Hsmear=np.transpose(repmat(Hsmear,ncolumns,1))
 
         return Hsmear
@@ -202,8 +192,8 @@ class mtf:
         :return: detector MTF
         """
         #TODO
-        seno=np.vectorize(math.sin)
-        Hmotion=seno(kmotion*fn2D)/kmotion*fn2D
+
+        Hmotion=np.sin(kmotion*fn2D)/(kmotion*fn2D)
         return Hmotion
 
     def plotMtf(self,Hdiff, Hdefoc, Hwfe, Hdet, Hsmear, Hmotion, Hsys, nlines, ncolumns, fnAct, fnAlt, directory, band):
@@ -225,13 +215,13 @@ class mtf:
         :return: N/A
         """
         fig = plt.figure(figsize=(20,10))
-        plt.plot(-fnAlt[0:nlines-1],abs(Hdiff[0:nlines-1,ncolumns-1]),label='Diffraction MTF')
-        plt.plot(-fnAlt[0:nlines-1],abs(Hdiff[0:nlines-1,ncolumns-1]),label='Defocus MTF')
-        plt.plot(-fnAlt[0:nlines-1],abs(Hdiff[0:nlines-1,ncolumns-1]),label='WFE aberrations MTF')
-        plt.plot(-fnAlt[0:nlines-1],abs(Hdiff[0:nlines-1,ncolumns-1]),label='Detector MTF')
-        plt.plot(-fnAlt[0:nlines-1],abs(Hdiff[0:nlines-1,ncolumns-1]),label='Smearing MTF')
-        plt.plot(-fnAlt[0:nlines-1],abs(Hdiff[0:nlines-1,ncolumns-1]),label='Motion blur MTF')
-        plt.plot(-fnAlt[0:nlines-1],abs(Hdiff[0:nlines-1,ncolumns-1]),label='System MTF')
+        plt.plot(-fnAlt[0:int(nlines/2)],abs(Hdiff[0:int(nlines/2),int(ncolumns/2)]),label='Diffraction MTF')
+        plt.plot(-fnAlt[0:int(nlines/2)],abs(Hdefoc[0:int(nlines/2),int(ncolumns/2)]),label='Defocus MTF')
+        plt.plot(-fnAlt[0:int(nlines/2)],abs(Hwfe[0:int(nlines/2),int(ncolumns/2)]),label='WFE aberrations MTF')
+        plt.plot(-fnAlt[0:int(nlines/2)],abs(Hdet[0:int(nlines/2),int(ncolumns/2)]),label='Detector MTF')
+        plt.plot(-fnAlt[0:int(nlines/2)],abs(Hsmear[0:int(nlines/2),int(ncolumns/2)]),label='Smearing MTF')
+        plt.plot(-fnAlt[0:int(nlines/2)],abs(Hmotion[0:int(nlines/2),int(ncolumns/2)]),label='Motion blur MTF')
+        plt.plot(-fnAlt[0:int(nlines/2)],abs(Hsys[0:int(nlines/2),int(ncolumns/2)]),label='System MTF')
         auxv = np.arange(0,1.1,0.1)
         plt.plot(0.5*np.ones(auxv.shape),auxv,'--k',linewidth=3,label='f Nyquist')
         plt.title('System MTF slice ALT for' + band, fontsize=20)
@@ -240,7 +230,7 @@ class mtf:
         plt.grid()
         plt.legend()
         saveas_str = 'system_mtf_cutAlt_'+band
-        savestr = directory + '/' + saveas_str
+        savestr = directory + saveas_str
         plt.savefig(savestr)
         plt.close(fig)
         #TODO
