@@ -63,8 +63,26 @@ class l1c(initL1c):
         :return: L1C radiances, L1C latitude and longitude in degrees
         '''
         #TODO
-        
+
         tck=bisplrep(lat,lon,toa)
+
+        MGRS=mgrs.MGRS()
+        MGRS_titles=set([])
+
+        for i in range(lat.shape[0]):
+            for j in range(lat.shape[1]):
+                thistitle = str(MGRS.toMGRS(lat[i,j],lon[i,j],MGRSPrecision=self.l1cConfig.mgrs_tile_precision))
+                MGRS_titles.add(thistitle)
+
+        MGRS_titles = list(MGRS_titles)
+
+        lat_l1c = np.zeros(len(MGRS_titles))
+        lon_l1c = np.zeros(len(MGRS_titles))
+        toa_l1c = np.zeros(len(MGRS_titles))
+
+        for k in range(len(MGRS_titles)):
+            lat_l1c[k],lon_l1c[k]=MGRS.toLatLon(MGRS_titles[k])
+            toa_l1c[k]=bisplev(lat_l1c[k],lon_l1c[k],tck)
 
         return lat_l1c, lon_l1c, toa_l1c
 
@@ -76,4 +94,7 @@ class l1c(initL1c):
         :param toa: Radiance 2D matrix
         :return: NA
         '''
+        if(lat.shape[0] != toa.shape[0]) or (lat.shape[1] != toa.shape[1]):
+            raise Exception("Input Latitude and Longitude matrix size don't match TOA matrix size")
+
         #TODO
