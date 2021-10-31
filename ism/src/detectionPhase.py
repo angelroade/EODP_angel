@@ -1,4 +1,5 @@
 import numpy.random
+import scipy
 
 from ism.src.initIsm import initIsm
 import numpy as np
@@ -8,6 +9,7 @@ from common.plot.plotF import plotF
 from scipy.constants import h
 from scipy.constants import c
 
+
 class detectionPhase(initIsm):
 
     def __init__(self, auxdir, indir, outdir):
@@ -16,7 +18,6 @@ class detectionPhase(initIsm):
         # Initialise the random see for the PRNU and DSNU
         np.random.seed(self.ismConfig.seed)
 
-
     def compute(self, toa, band):
 
         self.logger.info("EODP-ALG-ISM-2000: Detection stage")
@@ -24,59 +25,58 @@ class detectionPhase(initIsm):
         # Irradiance to photons conversion
         # -------------------------------------------------------------------------------
         self.logger.info("EODP-ALG-ISM-2010: Irradiances to Photons")
-        area_pix = self.ismConfig.pix_size * self.ismConfig.pix_size # [m2]
+        area_pix = self.ismConfig.pix_size * self.ismConfig.pix_size  # [m2]
         toa = self.irrad2Phot(toa, area_pix, self.ismConfig.t_int, self.ismConfig.wv[int(band[-1])])
 
-        self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [ph]")
+        self.logger.debug("TOA [0,0] " + str(toa[0, 0]) + " [ph]")
 
         # Photon to electrons conversion
         # -------------------------------------------------------------------------------
         self.logger.info("EODP-ALG-ISM-2030: Photons to Electrons")
         toa = self.phot2Electr(toa, self.ismConfig.QE)
 
-        self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
+        self.logger.debug("TOA [0,0] " + str(toa[0, 0]) + " [e-]")
 
         if self.ismConfig.save_after_ph2e:
-             saveas_str = self.globalConfig.ism_toa_e + band
-             writeToa(self.outdir, saveas_str, toa)
+            saveas_str = self.globalConfig.ism_toa_e + band
+            writeToa(self.outdir, saveas_str, toa)
 
         # # PRNU
         # # -------------------------------------------------------------------------------
         if self.ismConfig.apply_prnu:
 
-             self.logger.info("EODP-ALG-ISM-2020: PRNU")
-             toa = self.prnu(toa, self.ismConfig.kprnu)
+            self.logger.info("EODP-ALG-ISM-2020: PRNU")
+            toa = self.prnu(toa, self.ismConfig.kprnu)
 
-             self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
+            self.logger.debug("TOA [0,0] " + str(toa[0, 0]) + " [e-]")
 
-             if self.ismConfig.save_after_prnu:
-                 saveas_str = self.globalConfig.ism_toa_prnu + band
-                 writeToa(self.outdir, saveas_str, toa)
+            if self.ismConfig.save_after_prnu:
+                saveas_str = self.globalConfig.ism_toa_prnu + band
+                writeToa(self.outdir, saveas_str, toa)
 
-         # Dark-signal
-         # -------------------------------------------------------------------------------
+        # Dark-signal
+        # -------------------------------------------------------------------------------
         if self.ismConfig.apply_dark_signal:
 
-             self.logger.info("EODP-ALG-ISM-2020: Dark signal")
-             toa = self.darkSignal(toa, self.ismConfig.kdsnu, self.ismConfig.T, self.ismConfig.Tref,
-                                   self.ismConfig.ds_A_coeff, self.ismConfig.ds_B_coeff)
+            self.logger.info("EODP-ALG-ISM-2020: Dark signal")
+            toa = self.darkSignal(toa, self.ismConfig.kdsnu, self.ismConfig.T, self.ismConfig.Tref,
+                                  self.ismConfig.ds_A_coeff, self.ismConfig.ds_B_coeff)
 
-             self.logger.debug("TOA [0,0] " +str(toa[0,0]) + " [e-]")
+            self.logger.debug("TOA [0,0] " + str(toa[0, 0]) + " [e-]")
 
-             if self.ismConfig.save_after_ds:
-                 saveas_str = self.globalConfig.ism_toa_ds + band
-                 writeToa(self.outdir, saveas_str, toa)
+            if self.ismConfig.save_after_ds:
+                saveas_str = self.globalConfig.ism_toa_ds + band
+                writeToa(self.outdir, saveas_str, toa)
 
-         # Bad/dead pixels
-         # -------------------------------------------------------------------------------
+        # Bad/dead pixels
+        # -------------------------------------------------------------------------------
         if self.ismConfig.apply_bad_dead:
-
-              self.logger.info("EODP-ALG-ISM-2050: Bad/dead pixels")
-              toa = self.badDeadPixels(toa,
-                                 self.ismConfig.bad_pix,
-                                 self.ismConfig.dead_pix,
-                                 self.ismConfig.bad_pix_red,
-                                 self.ismConfig.dead_pix_red)
+            self.logger.info("EODP-ALG-ISM-2050: Bad/dead pixels")
+            toa = self.badDeadPixels(toa,
+                                     self.ismConfig.bad_pix,
+                                     self.ismConfig.dead_pix,
+                                     self.ismConfig.bad_pix_red,
+                                     self.ismConfig.dead_pix_red)
 
         # Write output TOA
         # -------------------------------------------------------------------------------
@@ -86,16 +86,15 @@ class detectionPhase(initIsm):
             writeToa(self.outdir, saveas_str, toa)
 
             title_str = 'TOA after the detection phase [e-]'
-            xlabel_str='ACT'
-            ylabel_str='ALT'
+            xlabel_str = 'ACT'
+            ylabel_str = 'ALT'
             plotMat2D(toa, title_str, xlabel_str, ylabel_str, self.outdir, saveas_str)
 
-            idalt = int(toa.shape[0]/2)
+            idalt = int(toa.shape[0] / 2)
             saveas_str = saveas_str + '_alt' + str(idalt)
-            plotF([], toa[idalt,:], title_str, xlabel_str, ylabel_str, self.outdir, saveas_str)
+            plotF([], toa[idalt, :], title_str, xlabel_str, ylabel_str, self.outdir, saveas_str)
 
         return toa
-
 
     def irrad2Phot(self, toa, area_pix, tint, wv):
         """
@@ -106,11 +105,12 @@ class detectionPhase(initIsm):
         :param wv: Central wavelength of the band [m]
         :return: Toa in photons
         """
-        #TODO
+        # TODO
 
-        Ein=toa*area_pix*tint
-        Eph=h*c/wv
-        toa_ph=Ein/Eph
+        Ein = toa * area_pix * tint
+        Eph = scipy.constants.Planck * scipy.constants.c / wv
+        factor = (area_pix * tint) / (scipy.constants.Planck * scipy.constants.c / wv)
+        toa_ph = Ein / Eph
 
         return toa_ph
 
@@ -121,12 +121,12 @@ class detectionPhase(initIsm):
         :param QE: Quantum efficiency [e-/ph]
         :return: toa in electrons
         """
-        #TODO
+        # TODO
 
-        toae=toa*QE
+        toae = toa * QE
         return toae
 
-    def badDeadPixels(self, toa,bad_pix,dead_pix,bad_pix_red,dead_pix_red):
+    def badDeadPixels(self, toa, bad_pix, dead_pix, bad_pix_red, dead_pix_red):
         """
         Bad and dead pixels simulation
         :param toa: input toa in [e-]
@@ -136,22 +136,22 @@ class detectionPhase(initIsm):
         :param dead_pix_red: Reduction in the quantum efficiency for the dead pixels [-, over 1]
         :return: toa in e- including bad & dead pixels
         """
-        #TODO
+        # TODO
 
-        shape=toa.shape[1]
-        n_dead=int(shape*dead_pix/100)
-        if n_dead!=0:
-            step_dead=int(shape/n_dead)
+        shape = toa.shape[1]
+        n_dead = int(shape * dead_pix / 100)
+        if n_dead != 0:
+            step_dead = int(shape / n_dead)
 
             for i in range(0, shape, step_dead):
-                toa[:,i]=toa[:,i]*(1-dead_pix_red)
+                toa[:, i] = toa[:, i] * (1 - dead_pix_red)
 
-        n_bad=int(shape*bad_pix/100)
-        if n_bad!=0:
-            step_bad=int(shape/n_bad)
+        n_bad = int(shape * bad_pix / 100)
+        if n_bad != 0:
+            step_bad = int(shape / n_bad)
 
-            for i in range(5, shape, step_bad):
-                toa[:,i]=toa[:,i]*(1-bad_pix_red)
+            for i in range(5, shape - step_bad, step_bad):
+                toa[:, i] = toa[:, i] * (1 - bad_pix_red)
 
         return toa
 
@@ -162,13 +162,15 @@ class detectionPhase(initIsm):
         :param kprnu: multiplicative factor to the standard normal deviation for the PRNU
         :return: TOA after adding PRNU [e-]
         """
-        #TODO
-        (i,j)=toa.shape
-        PRNU=np.random.normal(0,1,[1,j])*kprnu
+        # TODO
+        (i, j) = toa.shape
+        np.random.seed(self.ismConfig.seed)
+        PRNU = np.random.normal(0, 1, [1, j]) * kprnu
 
+        toa_out=np.zeros(toa.shape)
         for ii in range(i):
-         toa[ii,:]=toa[ii,:]*(1+PRNU)
-        return toa
+            toa_out[ii, :] = toa[ii, :] * (1 + PRNU)
+        return toa_out
 
     def darkSignal(self, toa, kdsnu, T, Tref, ds_A_coeff, ds_B_coeff):
         """
@@ -181,14 +183,14 @@ class detectionPhase(initIsm):
         :param ds_B_coeff: Empirical parameter of the model 6040 K
         :return: TOA in [e-] with dark signal
         """
-        #TODO
-        (i,j)=toa.shape
-        DSNU=abs(numpy.random.normal(0,1,[1,j]))*kdsnu
-        sd=ds_A_coeff*(T/Tref)**3*np.exp(-ds_B_coeff*(1/T-1/Tref))
-        DS=sd*(1+DSNU)
+        # TODO
+        (i, j) = toa.shape
+        np.random.seed(self.ismConfig.seed)
+        DSNU = abs(numpy.random.normal(0, 1, [1, j])) * kdsnu
+        sd = ds_A_coeff * ((T / Tref) ** 3) * np.exp(-ds_B_coeff * (1 / T - 1 / Tref))
+        DS = sd * (1 + DSNU)
+        toa_out = np.zeros(toa.shape)
         for ii in range(i):
+            toa_out[ii, :] = toa[ii, :] + DS
 
-         toa[ii-1,:]=toa[ii-1,:]+DS
-
-        return toa
-
+        return toa_out

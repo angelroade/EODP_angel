@@ -22,7 +22,7 @@ for file in generated_toas:
     generated_toas_path.append(os.path.join(outdir, file))
 
 for name_file in generated_toas:
-    if "optical" in name_file:
+    if "toa_VNIR" in name_file:
         if ".nc" in name_file:
             ref_toa = readToa(indir, name_file)
             generated_toa = readToa(outdir, name_file)
