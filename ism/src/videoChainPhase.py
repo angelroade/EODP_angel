@@ -70,15 +70,8 @@ class videoChainPhase(initIsm):
         :return: toa in digital counts
         """
         #TODO
-        factor=(1/max_voltage-min_voltage)*(2**bit_depth-1)
-        toa_dn=np.round(toa/max_voltage-min_voltage)*(2**bit_depth-1)
-
-        for i in range(toa.shape[0]):
-            for j in range (toa.shape[1]):
-                if toa_dn[i,j]>2**bit_depth - 1:
-                    toa_dn[i,j]=2**bit_depth - 1
-                elif toa_dn[i,j]<0:
-                    toa_dn[i,j]=toa_dn[i,j]
+        factor=(1/max_voltage-min_voltage)*(2**(bit_depth)-1)
+        toa_dn=np.round(toa/max_voltage-min_voltage)*(2**(bit_depth)-1)
 
         return toa_dn
 
