@@ -4,32 +4,30 @@ import numpy as np
 
 from common.io.writeToa import readToa
 from common.plot.plotF import plotF
-from pathlib import Path
+from ism.src.ism import ism
 
-def compareTOA(dir_example, dir_executed, fileName):
-    example_toa=readToa(dir_example, fileName)
-    executed_toa=readToa(dir_executed, fileName)
-
-    diference=np.abs((executed_toa-example_toa)/executed_toa)
-
-    title_str = fileName.replace(".nc", "") + " Difference"
-    xlabel_str='TOA Along track'
-    ylabel_str='Difference'
-    out_dir = os.path.join(dir_executed, "test")
-    alt = int(diference.shape[0]/2)
-    plotF([], diference[alt,:], title_str, xlabel_str, ylabel_str, out_dir, fileName.replace(".nc", ".png"))
-
-path = Path(os.path.realpath(__file__))
+# Directory - this is the common directory for the execution of the E2E, all modules
 auxdir = '/home/luss/EODP/EODP_angel/auxiliary'
-indir = '/home/luss/my_shared_folder/EODP_TER_2021/EODP-TS-L1B/input/'
-outdir = '/home/luss/my_shared_folder/test_l1b/'
+indir = '/home/luss/my_shared_folder/EODP_TER_2021/EODP-TS-E2E/l1b_out/'
+outdir = '/home/luss/my_shared_folder/test_E2E/L1B_module/'
 
-in_toas = [f for f in os.listdir(indir) if os.path.isfile(os.path.join(indir, f))]
-in_toas_path = []
+provided_toas = [f for f in os.listdir(indir) if os.path.isfile(os.path.join(indir, f))]
+provided_toas_path = []
+for file in provided_toas:
+    provided_toas_path.append(os.path.join(indir, file))
 
-for file in in_toas:
-    in_toas_path.append(os.path.join(indir, file))
+generated_toas = [f for f in provided_toas if os.path.isfile(os.path.join(outdir, f))]
+generated_toas_path = []
+for file in generated_toas:
+    generated_toas_path.append(os.path.join(outdir, file))
 
-for name_file in in_toas:
-    compareTOA(indir, outdir, name_file)
+for name_file in generated_toas:
+    if "VNIR" in name_file:
+        if ".nc" in name_file:
+            ref_toa = readToa(indir, name_file)
+            generated_toa = readToa(outdir, name_file)
+
+            diff_toa = np.abs(generated_toa-ref_toa)
+
+            print("Difference: " + str(np.max(diff_toa)))
 

@@ -96,7 +96,7 @@ class opticalPhase(initIsm):
         """
         # TODO
         factor=Tr*(pi/4)*(D/f)**2
-        toa=Tr*toa*(pi/4)*(D/f)**2
+        toa=Tr*toa*(pi/4)*((D/f)**2)
 
         return toa
 
@@ -115,6 +115,7 @@ class opticalPhase(initIsm):
         toa_ft=ifft2(out)
         toa_ft=np.real(toa_ft)
 
+
         return toa_ft
 
     def spectralIntegration(self, sgm_toa, sgm_wv, band):
@@ -129,7 +130,7 @@ class opticalPhase(initIsm):
 
         isrf, wv_isrf = readIsrf(os.path.join(self.auxdir,self.ismConfig.isrffile),band)
 
-        isrf_lambda=isrf/sum(isrf)
+        isrf_lambda=isrf/np.sum(isrf)
         wv_isrf=wv_isrf*1000
         (i,j)=sgm_toa[:,:,1].shape
         toa=np.zeros([i,j])
@@ -138,7 +139,7 @@ class opticalPhase(initIsm):
 
                 cs = interp1d(sgm_wv, sgm_toa[ii,jj,:], fill_value=(0, 0), bounds_error=False)
                 toa_interp = cs(wv_isrf)
-                ans=sum(toa_interp*isrf_lambda)
+                ans=np.sum(toa_interp*isrf_lambda)
                 toa[ii,jj]=ans
 
         return toa

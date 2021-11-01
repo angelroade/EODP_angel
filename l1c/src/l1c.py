@@ -1,4 +1,3 @@
-
 # LEVEL-1C
 
 from l1c.src.initL1c import initL1c
@@ -14,6 +13,8 @@ from matplotlib import cm
 class l1c(initL1c):
 
     def __init__(self, auxdir, indir, outdir):
+        print(type(indir))
+        print(indir)
         super().__init__(auxdir, indir, outdir)
 
     def processModule(self):
@@ -37,7 +38,7 @@ class l1c(initL1c):
             # Write output TOA
             # -------------------------------------------------------------------------------
             writeL1c(self.outdir, self.globalConfig.l1c_toa + band, lat_l1c, lon_l1c, toa_l1c)
-
+            writeToa(self.outdir, self.globalConfig.l1c_toa + band, toa_l1c)
             self.logger.info("End of BAND " + band)
 
         self.logger.info("End of the L1C Module!")
@@ -46,24 +47,20 @@ class l1c(initL1c):
     def l1cProjtoa(self, lat, lon, toa, band):
         '''
         This function reprojects the L1B radiances into the MGRS grid.
-
         The MGRS reference system
         https://www.bluemarblegeo.com/knowledgebase/calculator-2020/Military_Grid_Reference_System_(MGRS).htm
         MGRS: '31REQ4367374067'
         31 is the UTM zone, R is the UTM latitude band; EQ are the MGRS column and row band letters
         43673 is the MGRS Easting (5 dig); 74067 is the MGRS Northing (5dig)
-
         Python mgrs library documentation
         https://pypi.org/project/mgrs/
-
         :param lat: L1B latitudes [deg]
         :param lon: L1B longitudes [deg]
         :param toa: L1B radiances
         :param band: band
         :return: L1C radiances, L1C latitude and longitude in degrees
         '''
-        #TODO
-
+        # Create an interpolant with the L1B radiances and geodetic coordinates
         tck=bisplrep(lat,lon,toa)
 
         MGRS=mgrs.MGRS()
@@ -84,6 +81,21 @@ class l1c(initL1c):
             lat_l1c[k],lon_l1c[k]=MGRS.toLatLon(MGRS_titles[k])
             toa_l1c[k]=bisplev(lat_l1c[k],lon_l1c[k],tck)
 
+        #Plot l1c grid points. Cannot make it with panoply
+        lat = getCorners(lat)
+        lon = getCorners(lon)
+        fig = plt.figure(figsize=(20,10))
+        plt.plot(lon, lat, 'k', linewidth=2, label="L1B")
+        plt.plot(lon_l1c, lat_l1c, 'r.', markersize=5, label="L1C MGRS")
+        plt.title('Projection on ground for {}'.format(band), fontsize=20)
+        plt.xlabel('Longitude [deg]', fontsize=16)
+        plt.ylabel('Latitude [deg]', fontsize=16)
+        plt.axis('equal')
+        plt.grid()
+        plt.legend()
+        plt.savefig(self.outdir + 'gnd_proj_' + band + '.png')
+        plt.close(fig)
+
         return lat_l1c, lon_l1c, toa_l1c
 
     def checkSize(self, lat,toa):
@@ -94,7 +106,5 @@ class l1c(initL1c):
         :param toa: Radiance 2D matrix
         :return: NA
         '''
-        if(lat.shape[0] != toa.shape[0]) or (lat.shape[1] != toa.shape[1]):
-            raise Exception("Input Latitude and Longitude matrix size don't match TOA matrix size")
-
-        #TODO
+        if (lat.shape[0] != toa.shape[0]) or (lat.shape[1] != toa.shape[1]):
+            raise Exception("Size of the input lat/lon matrices and the TOA doesn't match.")
